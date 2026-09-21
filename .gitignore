@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Environment Variables & Secrets (CRITICAL: Never commit passwords to GitHub)
+.env
+.env.local
+.env.*.local
+
+# Database storage (Stores your client leads, calls, and user passwords securely on server)
+data/
+*.sqlite
+*.db
+
+# Logs & temp files
+*.log
+.DS_Store
+Thumbs.db
+
+# Native App Build Artifacts
+android/
+ios/
+dist/
+www/
+*.apk
+*.aab
+*.ipa

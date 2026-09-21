@@ -1,0 +1,40 @@
+{
+  "name": "brandb-telecalling-crm",
+  "version": "2.5.0",
+  "description": "Enterprise Telecalling CRM with Multi-Device Sync, RBAC, and Native Android/iOS App Support — Powered by Brand.B",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "serve": "node server.js",
+    "dev": "node server.js",
+    "app:init": "npx @capacitor/cli init",
+    "android:add": "npx cap add android",
+    "ios:add": "npx cap add ios",
+    "app:sync": "npx cap sync",
+    "android:open": "npx cap open android",
+    "ios:open": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  },
+  "keywords": [
+    "crm",
+    "telecalling",
+    "dialer",
+    "leads",
+    "sales",
+    "brandb",
+    "mobile-crm",
+    "rbac",
+    "capacitor",
+    "android",
+    "ios"
+  ],
+  "author": "Brand.B (Muhammed Munshid Kuruvangadan)",
+  "license": "PROPRIETARY"
+}

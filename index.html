@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="crm-config.js"></script>
+  <script>
+    // Strict Gatekeeper: Unauthenticated users -> login.html; Callers -> mobile.html
+    (function() {
+      const uKey = (window.CRM_STORAGE ? CRM_STORAGE.getUserKey() : 'crm_user');
+      const userStr = localStorage.getItem(uKey) || localStorage.getItem('crm_user');
+      if (!userStr) {
+        window.location.replace('login.html');
+        return;
+      }
+      try {
+        const user = JSON.parse(userStr);
+        if (user.role === 'Caller') {
+          // Telecallers only have Mobile View; direct access to desktop is blocked
+          window.location.replace('mobile.html');
+        }
+      } catch (e) {
+        window.location.replace('login.html');
+      }
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#6f2df2">
+  <meta name="description" content="Telecalling CRM - Professional High-Velocity Outreach, Team Management & Smart Dialer">
+  <title>Telecalling CRM - Modern Workspace & Smart Dialer</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="menus.css">
+  <link rel="stylesheet" href="team.css">
+  <link rel="stylesheet" href="configuration.css">
+</head>
+<body>
+
+  <!-- ========================================================================
+       TOP DEVICE PREVIEW / MODE SWITCHER & USER STATUS BAR
+       ======================================================================== -->
+  <header class="device-toggle-bar">
+    <div class="brand-label">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+      </svg>
+      Telecalling CRM
+    </div>
+
+    <!-- Mode Buttons: Desktop Workspace vs Mobile App -->
+    <div class="mode-buttons">
+      <button id="btn-mode-desktop" class="mode-btn active" title="Switch to Full Desktop Admin Workspace">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+          <line x1="8" y1="21" x2="16" y2="21"></line>
+          <line x1="12" y1="17" x2="12" y2="21"></line>
+        </svg>
+        Desktop Workspace
+      </button>
+      <button id="btn-mode-mobile" class="mode-btn" onclick="openMobileWindow()" title="Open Mobile Companion App in a Separate Window">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+          <line x1="12" y1="18" x2="12.01" y2="18"></line>
+        </svg>
+        Mobile App View ↗
+      </button>
+    </div>
+
+    <!-- Logged In User Profile Chip (Active User switcher removed as requested) -->
+    <div class="user-nav-chip" title="Logged In Account Profile">
+      <div id="nav-user-avatar" class="avatar">B</div>
+      <div class="user-info">
+        <div id="nav-user-name" class="name">Administrator</div>
+        <div id="nav-user-email" class="email" style="font-size: 11px; color: var(--text-muted); line-height: 1.1;">admin@company.com</div>
+      </div>
+      <span id="nav-user-role-badge" class="role-pill admin">Admin</span>
+      <button id="btn-logout" class="btn-logout" title="Sign Out">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       DESKTOP ADMIN WORKSPACE
+       ======================================================================== -->
+  <div id="desktop-app-container" class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon-box">
+          <svg width="20" height="20" fill="none" stroke="#ffffff" stroke-width="2.2" viewBox="0 0 24 24">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+        </div>
+        <div class="brand-title">Telecalling</div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Overview Group -->
+        <div>
+          <div class="nav-section-title">Overview</div>
+          <ul class="nav-list">
+            <li id="nav-item-dashboard">
+              <a href="#" class="nav-link active" data-view="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span id="nav-title-dashboard">Dashboard</span>
+              </a>
+            </li>
+            <li id="nav-item-analytics">
+              <a href="#" class="nav-link" data-view="analytics">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                <span>Analytics</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Operations Group -->
+        <div>
+          <div class="nav-section-title">Operations</div>
+          <ul class="nav-list">
+            <li id="nav-item-numbers">
+              <a href="#" class="nav-link" data-view="numbers">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span id="nav-title-numbers">Numbers & Leads</span>
+                <span id="sidebar-pending-badge" class="nav-badge">6</span>
+              </a>
+            </li>
+            <li id="nav-item-history">
+              <a href="#" class="nav-link" data-view="history">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                <span id="nav-title-history">Call History</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Organization Group -->
+        <div>
+          <div class="nav-section-title">Organization</div>
+          <ul class="nav-list">
+            <li id="nav-item-team">
+              <a href="#" class="nav-link" data-view="team">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>Team Management</span>
+              </a>
+            </li>
+            <li id="nav-item-settings">
+              <a href="#" class="nav-link" data-view="settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <span>Settings</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="app-download-card">
+          <div class="card-top-row">
+            <span class="card-icon">📱</span>
+            <div class="card-text">
+              <strong>Mobile Companion</strong>
+              <p>Smart Dialer for Callers</p>
+            </div>
+          </div>
+          <button class="btn-app-open" id="btn-open-mobile-from-card">Launch Dialer</button>
+        </div>
+        <button id="sidebar-collapse-btn" class="collapse-btn" title="Toggle Sidebar">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <div class="sidebar-producer-badge">
+          <div class="powered-by-brandb light">
+            <span>Powered by</span>
+            <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgBncrIxBQ6aqKYMaEDfbYf27SZ1epRflTNXWL7aa-EV31BQmTAcNnwTg33gkjbvGXgXe7vT30wdXDgGxwBaqK2V-FqevCWnd4LJmp9JRIlA-Zas53te6Z2KSoq0lNCOUDTfydnHw-oS6x7wWeHJEKAF2oWIqnZtr_qmpA-wTX15tMsJnnLL2_-X6vbBrY" alt="BrandB" class="brandb-logo" onerror="this.style.display='none'">
+            <strong>BrandB</strong>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Content Area -->
+    <div class="main-content">
+      
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <div class="navbar-left">
+          <div class="breadcrumb">
+            <span>Workspace</span>
+            <span class="sep">/</span>
+            <span id="breadcrumb-page-title" class="current">Dashboard</span>
+          </div>
+        </div>
+        <div class="navbar-right">
+          <div class="live-status-pill">
+            <span class="pulse-dot"></span>
+            <span id="system-status-text">Live System Online</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ACCESS RESTRICTED VIEW BANNER -->
+      <div id="access-restricted-view" style="display: none; padding: 40px 20px;">
+        <div class="access-restricted-card">
+          <div class="icon">🔒</div>
+          <h3>Access Restricted</h3>
+          <p id="access-restricted-message">You do not have administrative permission to view this section. Please contact your CRM Administrator for elevated rights.</p>
+          <button class="btn btn-primary" onclick="navigateToDashboard()">Return to Dashboard</button>
+        </div>
+      </div>
+
+      <!-- VIEW 1: DASHBOARD -->
+      <section id="view-dashboard">
+        <div class="page-body">
+          <div class="page-header">
+            <div>
+              <h1 id="dashboard-main-heading" class="page-title">Executive Dashboard</h1>
+              <p class="page-subtitle">Real-time outreach KPIs, team activity, and call performance</p>
+            </div>
+            <div class="header-actions">
+              <select id="dashboard-timeframe" class="form-control" style="width: auto;">
+                <option value="today">Today</option>
+                <option value="week" selected>This Week</option>
+                <option value="month">This Month</option>
+                <option value="all">All Time</option>
+              </select>
+              <select id="dashboard-caller-filter" class="form-control" style="width: auto;">
+                <option value="All">All Telecallers</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Easy Mode Quick Action Workflow Bar -->
+          <div class="easy-mode-bar">
+            <div class="easy-mode-title">
+              <span class="sparkle-icon">⚡</span>
+              <div>
+                <strong>Quick Telecalling Actions (Easy Mode)</strong>
+                <span>One-click actions to streamline calling & outreach workflow</span>
+              </div>
+            </div>
+            <div class="easy-mode-actions">
+              <button class="btn btn-primary btn-easy-dial" onclick="startNextQueuedCall()" title="Dial next contact in queue immediately">
+                📞 Start Next Call
+              </button>
+              <button class="btn btn-secondary" onclick="document.getElementById('btn-open-add-lead').click()" title="Add a new lead contact">
+                ➕ Add Lead
+              </button>
+              <button class="btn btn-secondary btn-open-upload-excel" title="Import contacts from CSV or Excel">
+                📥 Upload Leads
+              </button>
+              <button class="btn btn-secondary" onclick="autoDelegateNumbers()" title="Evenly distribute leads across active callers">
+                ⚡ Auto-Delegate
+              </button>
+              <button class="btn btn-secondary" onclick="openMobileWindow()" title="Open Mobile Companion & Smart Dialer in a separate window">
+                📱 Mobile View ↗
+              </button>
+            </div>
+          </div>
+
+          <!-- Top Metric Stat Cards (Corrected Card Top & Value Structure) -->
+          <div class="metrics-grid">
+            <div class="metric-card clickable-box" onclick="flowDashboardBox('calls')" title="Click to view full Call History">
+              <div class="metric-card-top">
+                <span class="metric-title">Total Calls Dialed</span>
+                <div class="metric-icon purple">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </div>
+              </div>
+              <div id="dash-total-calls" class="metric-value">167</div>
+              <div class="metric-trend up">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                <span>+18.4% vs last period</span>
+              </div>
+              <span class="box-flow-hint">Inspect Call History &rarr;</span>
+            </div>
+
+            <div class="metric-card clickable-box" onclick="flowDashboardBox('contact')" title="Click to inspect Connect Efficiency & Analytics">
+              <div class="metric-card-top">
+                <span class="metric-title">Contact / Answer Rate</span>
+                <div class="metric-icon blue">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                </div>
+              </div>
+              <div id="dash-contact-rate" class="metric-value">68.5%</div>
+              <div class="metric-trend up">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                <span>+5.2% contact efficiency</span>
+              </div>
+              <span class="box-flow-hint">View Connect Analysis &rarr;</span>
+            </div>
+
+            <div class="metric-card clickable-box" onclick="flowDashboardBox('leads')" title="Click to view Qualified Leads in Queue">
+              <div class="metric-card-top">
+                <span class="metric-title">Qualified Leads</span>
+                <div class="metric-icon green">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                </div>
+              </div>
+              <div id="dash-qualified-leads" class="metric-value">34</div>
+              <div class="metric-trend up">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                <span>20.3% conversion to lead</span>
+              </div>
+              <span class="box-flow-hint">View Qualified Leads &rarr;</span>
+            </div>
+
+            <div class="metric-card clickable-box" onclick="flowDashboardBox('pending')" title="Click to view Pending Leads ready to call">
+              <div class="metric-card-top">
+                <span class="metric-title">Pending Outreach Leads</span>
+                <div class="metric-icon amber">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                </div>
+              </div>
+              <div id="dash-pending-calls" class="metric-value">6</div>
+              <div class="metric-trend">
+                <span>Queued for telecallers</span>
+              </div>
+              <span class="box-flow-hint">Open Pending Queue &rarr;</span>
+            </div>
+          </div>
+
+          <!-- Calling Activity Interactive SVG Chart -->
+          <div class="content-card" style="margin-bottom: 24px;">
+            <div class="card-header" style="justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h3 class="card-title">Calling Volume Timeline</h3>
+                <p id="chart-subheading" class="card-subtitle">Calls initiated and connected across time slots</p>
+              </div>
+              <div style="display: flex; gap: 14px; font-size: 12.5px; align-items: center; flex-wrap: wrap;">
+                <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #6f2df2; display: inline-block;"></span> <strong id="chart-total-count">167</strong> Total Calls</span>
+                <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block;"></span> <strong id="chart-connected-count">114</strong> Connected</span>
+                <span id="chart-connect-rate-badge" class="badge badge-success" style="font-weight: 700;">68.3% Connect</span>
+              </div>
+            </div>
+            <div id="calling-chart-wrapper" class="chart-container" style="height: 220px; padding: 10px 0; position: relative;">
+              <div id="chart-tooltip" class="chart-tooltip-box"></div>
+              <svg width="100%" height="100%" viewBox="0 0 800 200" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="chartGradTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#6f2df2" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#6f2df2" stop-opacity="0.0"/>
+                  </linearGradient>
+                  <linearGradient id="chartGradConnected" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#10b981" stop-opacity="0.25"/>
+                    <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
+                  </linearGradient>
+                </defs>
+                <line x1="0" y1="40" x2="800" y2="40" stroke="#f1f5f9" stroke-width="1"/>
+                <line x1="0" y1="90" x2="800" y2="90" stroke="#f1f5f9" stroke-width="1"/>
+                <line x1="0" y1="140" x2="800" y2="140" stroke="#f1f5f9" stroke-width="1"/>
+                <line x1="0" y1="190" x2="800" y2="190" stroke="#f1f5f9" stroke-width="1"/>
+
+                <path d="M 0,160 Q 100,140 200,80 T 400,50 T 600,70 T 800,40 L 800,200 L 0,200 Z" fill="url(#chartGradTotal)"/>
+                <path d="M 0,160 Q 100,140 200,80 T 400,50 T 600,70 T 800,40" fill="none" stroke="#6f2df2" stroke-width="3" stroke-linecap="round"/>
+
+                <path d="M 0,180 Q 100,160 200,120 T 400,90 T 600,110 T 800,80 L 800,200 L 0,200 Z" fill="url(#chartGradConnected)"/>
+                <path d="M 0,180 Q 100,160 200,120 T 400,90 T 600,110 T 800,80" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; padding: 0 10px;">
+              <span>09:00 AM</span>
+              <span>11:00 AM</span>
+              <span>01:00 PM</span>
+              <span>03:00 PM</span>
+              <span>05:00 PM</span>
+              <span>07:00 PM</span>
+            </div>
+          </div>
+
+          <!-- Two Column Grid: Top Performers & Call Outcomes -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title">Top Telecallers Leaderboard</h3>
+                <p class="card-subtitle">Ranked by calls made and qualified leads</p>
+              </div>
+              <div style="overflow-x: auto;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Telecaller</th>
+                      <th>Calls</th>
+                      <th>Connect %</th>
+                      <th>Leads</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dash-leaderboard-tbody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title">Call Outcomes Breakdown</h3>
+                <p class="card-subtitle">Distribution of calls by logged disposition</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 14px; padding: 10px 0;">
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span style="font-weight: 600; color: #10b981;">👍 Interested / Qualified</span>
+                    <span id="dash-outcome-interested">28% (46)</span>
+                  </div>
+                  <div style="height: 7px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="dash-bar-interested" style="height: 100%; width: 28%; background: #10b981;"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span style="font-weight: 600; color: #0284c7;">📞 Callback Scheduled</span>
+                    <span id="dash-outcome-callback">22% (36)</span>
+                  </div>
+                  <div style="height: 7px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="dash-bar-callback" style="height: 100%; width: 22%; background: #0284c7;"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span style="font-weight: 600; color: #f59e0b;">⌛ Not Lifting / Ringing</span>
+                    <span id="dash-outcome-notlifting">30% (50)</span>
+                  </div>
+                  <div style="height: 7px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="dash-bar-notlifting" style="height: 100%; width: 30%; background: #f59e0b;"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span style="font-weight: 600; color: #ef4444;">👎 Not Interested</span>
+                    <span id="dash-outcome-notinterested">14% (24)</span>
+                  </div>
+                  <div style="height: 7px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="dash-bar-notinterested" style="height: 100%; width: 14%; background: #ef4444;"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span style="font-weight: 600; color: #94a3b8;">🚫 Invalid / Wrong Number</span>
+                    <span id="dash-outcome-invalid">6% (11)</span>
+                  </div>
+                  <div style="height: 7px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="dash-bar-invalid" style="height: 100%; width: 6%; background: #94a3b8;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: NUMBERS & LEADS -->
+      <section id="view-numbers" style="display: none;">
+        <div class="page-body">
+          <div class="page-header">
+            <div>
+              <h1 id="numbers-page-title" class="page-title">Numbers & Outreach Queue</h1>
+              <p id="numbers-page-subtitle" class="page-subtitle">Manage calling lists, distribute leads, and track outreach status</p>
+            </div>
+            <div class="numbers-actions-group">
+              <button id="btn-auto-delegate" class="btn btn-primary" title="Distribute all pending leads evenly across active team members">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                Auto-Delegate
+              </button>
+              <button class="btn btn-secondary btn-open-upload-excel" id="btn-upload-leads" title="Upload contacts via Excel or CSV">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                Upload Excel / CSV
+              </button>
+              <button class="btn btn-secondary" id="btn-open-add-lead" title="Add a single new lead">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Add Lead
+              </button>
+              <button class="btn btn-secondary" id="btn-export-leads" title="Export filtered leads to CSV">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Export CSV
+              </button>
+              <button class="btn btn-secondary btn-open-custom-field" id="btn-custom-fields" title="Configure dynamic custom fields">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                Fields
+              </button>
+            </div>
+          </div>
+
+          <!-- Numbers Metrics Cards (Fixed Layout) -->
+          <div class="metrics-grid">
+            <div class="metric-card clickable-box" onclick="flowNumbersBox('all')" title="Filter to All Leads">
+              <div class="metric-card-top">
+                <span class="metric-title">Total Database Leads</span>
+                <div class="metric-icon purple">📁</div>
+              </div>
+              <div id="num-metric-total" class="metric-value">6</div>
+              <div class="metric-trend">Total numbers loaded</div>
+            </div>
+
+            <div class="metric-card clickable-box" onclick="flowNumbersBox('pending')" title="Filter to Pending Leads">
+              <div class="metric-card-top">
+                <span class="metric-title">Pending Calls</span>
+                <div class="metric-icon amber">⏳</div>
+              </div>
+              <div id="num-metric-pending" class="metric-value">6</div>
+              <div class="metric-trend">Ready for telecalling</div>
+            </div>
+
+            <div class="metric-card clickable-box" onclick="flowNumbersBox('called')" title="Filter to Called Leads">
+              <div class="metric-card-top">
+                <span class="metric-title">Completed Calls</span>
+                <div class="metric-icon blue">📞</div>
+              </div>
+              <div id="num-metric-called" class="metric-value">0</div>
+              <div class="metric-trend up">Dispositions recorded</div>
+            </div>
+
+            <div class="metric-card clickable-box" onclick="flowNumbersBox('archived')" title="Filter to Archived Leads">
+              <div class="metric-card-top">
+                <span class="metric-title">Archived / DNC</span>
+                <div class="metric-icon green">🛡️</div>
+              </div>
+              <div id="num-metric-archived" class="metric-value">0</div>
+              <div class="metric-trend">Excluded from dialer</div>
+            </div>
+          </div>
+
+          <!-- Collapsible Per-User Pending Numbers Summary -->
+          <div id="pending-numbers-collapsible" class="collapsible-card">
+            <div id="pending-numbers-header" class="collapsible-header" style="cursor: pointer;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                <strong>Pending Leads by Assigned Telecaller</strong>
+              </div>
+              <span class="toggle-arrow">&#9660;</span>
+            </div>
+            <div class="collapsible-body" style="padding: 16px 20px; border-top: 1px solid var(--border);">
+              <div id="user-pending-summary-container">
+              </div>
+            </div>
+          </div>
+
+          <!-- Advanced Multi-Criteria Filter Bar -->
+          <div class="content-card">
+            
+            <div id="numbers-status-pills" class="filter-pills-bar">
+              <button class="filter-pill active" data-status="All">
+                <span>All Leads</span>
+                <span id="pill-count-all" class="pill-badge">6</span>
+              </button>
+              <button class="filter-pill" data-status="Pending">
+                <span>Pending</span>
+                <span id="pill-count-pending" class="pill-badge">6</span>
+              </button>
+              <button class="filter-pill" data-status="Called">
+                <span>Called</span>
+                <span id="pill-count-called" class="pill-badge">0</span>
+              </button>
+              <button class="filter-pill" data-status="Interested">
+                <span>Interested</span>
+                <span id="pill-count-interested" class="pill-badge">0</span>
+              </button>
+              <button class="filter-pill" data-status="Callback">
+                <span>Callback</span>
+                <span id="pill-count-callback" class="pill-badge">0</span>
+              </button>
+              <button class="filter-pill" data-status="Not Lifting">
+                <span>Not Lifting</span>
+                <span id="pill-count-notlifting" class="pill-badge">0</span>
+              </button>
+              <button class="filter-pill" data-status="Not Interested">
+                <span>Not Interested</span>
+                <span id="pill-count-notinterested" class="pill-badge">0</span>
+              </button>
+              <button class="filter-pill" data-status="Archived">
+                <span>Archived</span>
+                <span id="pill-count-archived" class="pill-badge">0</span>
+              </button>
+            </div>
+
+            <!-- Filter Controls Row (Proper Toolbar Flex Layout) -->
+            <div class="table-toolbar">
+              <div class="search-box">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input id="numbers-search-input" type="text" placeholder="Search by name, phone, organization, or notes...">
+              </div>
+
+              <select id="numbers-source-filter" class="form-control">
+                <option value="All">All Lead Sources</option>
+                <option value="Excel Upload">Excel Upload</option>
+                <option value="Website Leads">Website Leads</option>
+                <option value="Google Ads">Google Ads</option>
+                <option value="Facebook Ads">Facebook Ads</option>
+                <option value="Cold Calling">Cold Calling</option>
+              </select>
+
+              <select id="numbers-assigned-filter" class="form-control">
+                <option value="All">All Assigned Callers</option>
+              </select>
+
+              <select id="numbers-sort-filter" class="form-control">
+                <option value="default">Sort: Newest First</option>
+                <option value="name">Sort: Name (A-Z)</option>
+                <option value="org">Sort: Company (A-Z)</option>
+                <option value="status">Sort: By Status</option>
+              </select>
+
+              <button id="btn-clear-numbers-filters" class="btn-clear-filters" title="Reset all search filters">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                Clear
+              </button>
+            </div>
+
+            <div id="numbers-empty-state" class="empty-state" style="display: none;">
+              <div class="empty-state-icon">
+                <svg width="36" height="36" fill="none" stroke="#6f2df2" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              </div>
+              <h3>No leads match your filter criteria</h3>
+              <p>Try resetting the search terms, changing the source filter, or adding new leads.</p>
+              <button class="btn btn-primary btn-open-upload-excel">Upload New Leads</button>
+            </div>
+
+            <div id="numbers-table-container" style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Contact Name</th>
+                    <th>Organization</th>
+                    <th>Phone</th>
+                    <th>Lead Source</th>
+                    <th>Assigned Caller</th>
+                    <th>Status</th>
+                    <th>Callback Date</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="numbers-table-tbody">
+                </tbody>
+              </table>
+            </div>
+
+            <div class="pagination-wrapper">
+              <div id="numbers-pagination-info" class="pagination-info">Showing 1 to 6 of 6 leads</div>
+              <div class="pagination-controls">
+                <button id="btn-leads-prev" class="pagination-btn" disabled>&larr; Previous</button>
+                <button id="btn-leads-next" class="pagination-btn" disabled>Next &rarr;</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: TEAM MANAGEMENT -->
+      <section id="view-team" style="display: none;">
+        <div class="page-body">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Team Management</h1>
+              <p class="page-subtitle">Supervise telecallers, assign outreach queues, and monitor permissions</p>
+            </div>
+            <button id="btn-add-team-member" class="btn btn-primary btn-open-add-member" title="Invite a new telecaller or manager">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add Team Member
+            </button>
+          </div>
+
+          <!-- Team Metric Cards (Fixed Layout) -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-card-top">
+                <span class="metric-title">Total Members</span>
+                <div class="metric-icon purple">👥</div>
+              </div>
+              <div id="team-metric-total" class="metric-value">4</div>
+              <div class="metric-trend">Registered personnel</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card-top">
+                <span class="metric-title">Active Callers</span>
+                <div class="metric-icon green">⚡</div>
+              </div>
+              <div id="team-metric-active" class="metric-value">4</div>
+              <div class="metric-trend up">Receiving auto-delegated leads</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card-top">
+                <span class="metric-title">Suspended</span>
+                <div class="metric-icon amber">⏸️</div>
+              </div>
+              <div id="team-metric-suspended" class="metric-value">0</div>
+              <div class="metric-trend">Temporarily paused</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card-top">
+                <span class="metric-title">Inactive</span>
+                <div class="metric-icon blue">💤</div>
+              </div>
+              <div id="team-metric-inactive" class="metric-value">0</div>
+              <div class="metric-trend">Offboarded</div>
+            </div>
+          </div>
+
+          <div class="content-card">
+            
+            <div id="team-status-pills" class="filter-pills-bar">
+              <button class="filter-pill active" data-team-status="All">
+                <span>All Members</span>
+                <span id="team-pill-all" class="pill-badge">4</span>
+              </button>
+              <button class="filter-pill" data-team-status="Active">
+                <span>Active</span>
+                <span id="team-pill-active" class="pill-badge">4</span>
+              </button>
+              <button class="filter-pill" data-team-status="Suspended">
+                <span>Suspended</span>
+                <span id="team-pill-suspended" class="pill-badge">0</span>
+              </button>
+              <button class="filter-pill" data-team-status="Inactive">
+                <span>Inactive</span>
+                <span id="team-pill-inactive" class="pill-badge">0</span>
+              </button>
+            </div>
+
+            <div class="table-toolbar">
+              <div class="search-box">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input id="team-search-input" type="text" placeholder="Search members by name, email, or phone...">
+              </div>
+
+              <select id="team-status-filter" class="form-control">
+                <option value="All">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Suspended">Suspended</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+
+              <select id="team-role-filter" class="form-control">
+                <option value="All">All Roles</option>
+                <option value="Admin">Admin</option>
+                <option value="Manager">Manager</option>
+                <option value="Team Lead">Team Lead</option>
+                <option value="Caller">Caller / Telecaller</option>
+              </select>
+
+              <button id="btn-clear-team-filters" class="btn-clear-filters" title="Reset filters">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                Clear
+              </button>
+            </div>
+
+            <div id="team-empty-state" class="empty-state" style="display: none;">
+              <div class="empty-state-icon">
+                <svg width="36" height="36" fill="none" stroke="#6f2df2" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+              </div>
+              <h3>No team members found</h3>
+              <p>No members match your current filter settings.</p>
+              <button class="btn btn-primary btn-open-add-member">Add Team Member</button>
+            </div>
+
+            <div id="team-table-container" style="overflow-x: auto;">
+              <table class="data-table team-table">
+                <thead>
+                  <tr>
+                    <th>Member</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Outreach Queue</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="team-table-tbody">
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: PERFORMANCE ANALYTICS -->
+      <section id="view-analytics" style="display: none;">
+        <div class="page-body">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Performance Analytics</h1>
+              <p class="page-subtitle">Deep conversion funnel, response times, and agent metrics</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <select id="analytics-timeframe" class="form-control" style="width: auto;">
+                <option value="today">Today's Shift</option>
+                <option value="7d" selected>Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Key Conversion KPIs (Fixed Card Layout) -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-card-top">
+                <span class="metric-title">Answer / Connect Rate</span>
+                <div class="metric-icon green">📞</div>
+              </div>
+              <div id="analytics-connect-rate" class="metric-value">0.0%</div>
+              <div class="metric-trend up">Based on call logs</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card-top">
+                <span class="metric-title">Lead Qualification Rate</span>
+                <div class="metric-icon purple">⭐</div>
+              </div>
+              <div id="analytics-qualification-rate" class="metric-value">0.0%</div>
+              <div class="metric-trend up">Based on leads data</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card-top">
+                <span class="metric-title">Average Call Duration</span>
+                <div class="metric-icon blue">⏱️</div>
+              </div>
+              <div id="analytics-avg-duration" class="metric-value">0m 0s</div>
+              <div class="metric-trend">Average active duration</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card-top">
+                <span class="metric-title">Callback Resolution</span>
+                <div class="metric-icon amber">📅</div>
+              </div>
+              <div id="analytics-callback-resolution" class="metric-value">0.0%</div>
+              <div class="metric-trend up">Callbacks resolved</div>
+            </div>
+          </div>
+
+          <!-- Conversion Funnel & Disposition Breakdown -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title">Outreach Conversion Funnel</h3>
+                <p class="card-subtitle">Drop-off stages from lead ingestion to qualification</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 12px; padding: 10px 0;">
+                <div class="funnel-step">
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+                    <span>1. Total Leads Uploaded</span>
+                    <span>100% (240 Leads)</span>
+                  </div>
+                  <div style="height: 10px; background: #ede9fe; border-radius: 5px; overflow: hidden; margin-top: 4px;">
+                    <div style="height: 100%; width: 100%; background: #6f2df2;"></div>
+                  </div>
+                </div>
+
+                <div class="funnel-step">
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+                    <span>2. Calls Dialed</span>
+                    <span>92% (221 Calls)</span>
+                  </div>
+                  <div style="height: 10px; background: #ede9fe; border-radius: 5px; overflow: hidden; margin-top: 4px;">
+                    <div style="height: 100%; width: 92%; background: #7c3aed;"></div>
+                  </div>
+                </div>
+
+                <div class="funnel-step">
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+                    <span>3. Answered & Connected</span>
+                    <span>68.5% (151 Connected)</span>
+                  </div>
+                  <div style="height: 10px; background: #ede9fe; border-radius: 5px; overflow: hidden; margin-top: 4px;">
+                    <div style="height: 100%; width: 68.5%; background: #8b5cf6;"></div>
+                  </div>
+                </div>
+
+                <div class="funnel-step">
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+                    <span>4. Qualified / Hot Leads</span>
+                    <span>20.4% (45 Qualified)</span>
+                  </div>
+                  <div style="height: 10px; background: #d1fae5; border-radius: 5px; overflow: hidden; margin-top: 4px;">
+                    <div style="height: 100%; width: 20.4%; background: #10b981;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title">Live Call Dispositions</h3>
+                <p class="card-subtitle">Real-time outcome percentages</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 14px; padding: 10px 0;">
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span>Interested (Lead Generated)</span>
+                    <span id="stat-bar-interested-label">0% (0 calls)</span>
+                  </div>
+                  <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="stat-bar-interested" style="height: 100%; width: 0%; background: #10b981; transition: width 0.4s;"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span>Callback Scheduled</span>
+                    <span id="stat-bar-callback-label">0% (0 calls)</span>
+                  </div>
+                  <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="stat-bar-callback" style="height: 100%; width: 0%; background: #0284c7; transition: width 0.4s;"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span>Not Lifting</span>
+                    <span id="stat-bar-notlifting-label">0% (0 calls)</span>
+                  </div>
+                  <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="stat-bar-notlifting" style="height: 100%; width: 0%; background: #f59e0b; transition: width 0.4s;"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                    <span>Not Interested</span>
+                    <span id="stat-bar-notinterested-label">0% (0 calls)</span>
+                  </div>
+                  <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="stat-bar-notinterested" style="height: 100%; width: 0%; background: #ef4444; transition: width 0.4s;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 5: CALL HISTORY & LOGS -->
+      <section id="view-history" style="display: none;">
+        <div class="page-body">
+          <div class="page-header">
+            <div>
+              <h1 id="history-page-title" class="page-title">Call History & Activity Logs</h1>
+              <p id="history-page-subtitle" class="page-subtitle">Exhaustive record of all completed telecalls, outcomes, and notes</p>
+            </div>
+            <button id="btn-export-history" class="btn btn-secondary" title="Export call logs to CSV">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Export Logs
+            </button>
+          </div>
+
+          <div class="content-card">
+            <!-- Toolbar Fixed Flex Layout (Image 4 Fix) -->
+            <div class="table-toolbar">
+              <div class="search-box">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input id="history-search-input" type="text" placeholder="Search call logs by contact name or notes...">
+              </div>
+
+              <select id="history-outcome-filter" class="form-control">
+                <option value="All">All Outcomes</option>
+                <option value="Interested">Interested</option>
+                <option value="Callback">Callback</option>
+                <option value="Not Lifting">Not Lifting</option>
+                <option value="Not Interested">Not Interested</option>
+                <option value="Invalid">Invalid</option>
+              </select>
+
+              <select id="history-caller-filter" class="form-control">
+                <option value="All">All Callers</option>
+              </select>
+
+              <button id="btn-clear-history-filters" class="btn-clear-filters" title="Reset search">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                Clear
+              </button>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Contact</th>
+                    <th>Phone</th>
+                    <th>Telecaller</th>
+                    <th>Outcome</th>
+                    <th>Duration</th>
+                    <th>Notes & Tags</th>
+                    <th>Date & Time</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="history-table-tbody">
+                </tbody>
+              </table>
+            </div>
+
+            <div class="pagination-wrapper">
+              <div id="history-pagination-info" class="pagination-info">Showing call logs</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 6: WORKSPACE SETTINGS (Includes Authorized Personnel Management) -->
+      <section id="view-settings" style="display: none;">
+        <div class="page-body">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Workspace Settings</h1>
+              <p class="page-subtitle">Configure lead distribution rules, calling hours, and authorized personnel</p>
+            </div>
+            <button id="btn-save-settings" class="btn btn-primary">Save Changes</button>
+          </div>
+
+          <!-- Section A: Authorized Personnel & RBAC Management (Admin Only) -->
+          <div id="settings-authorized-personnel-card" class="content-card" style="margin-bottom: 24px; border: 2px solid #ddd6fe;">
+            <div class="card-header" style="justify-content: space-between; align-items: center;">
+              <div>
+                <h3 class="card-title" style="color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                  <span>🔐 Authorized Personnel & Login Access</span>
+                  <span class="role-pill admin">Admin Managed</span>
+                </h3>
+                <p class="card-subtitle">Only personnel configured here are permitted to log in. Role determines access tier.</p>
+              </div>
+              <button id="btn-open-add-authorized" class="btn btn-primary">
+                + Add Authorized User
+              </button>
+            </div>
+
+            <div style="overflow-x: auto; margin-top: 10px;">
+              <table class="authorized-users-table">
+                <thead>
+                  <tr>
+                    <th>Personnel Name</th>
+                    <th>Authorized Email</th>
+                    <th>Password</th>
+                    <th>Role & Permission Tier</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="authorized-users-tbody">
+                  <!-- Dynamically populated from crm_authorized_users -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            
+            <!-- Clean Company & Data Management Controls (Points 4 & 5 Simplified) -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            
+            <!-- Company Profile Card (Synchronized with crm-config.js) -->
+            <div class="content-card">
+              <div class="card-header">
+                <h3 class="card-title">Organization Identity</h3>
+                <p class="card-subtitle">Configured via <code>crm-config.js</code></p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 14px; padding: 10px 0;">
+                <div class="form-group">
+                  <label>Company / Brand Name</label>
+                  <input id="setting-company-name" type="text" class="form-control" readonly style="background: #f8fafc;">
+                </div>
+                <div class="form-group">
+                  <label>Support / Caller Contact</label>
+                  <input id="setting-company-phone" type="text" class="form-control" readonly style="background: #f8fafc;">
+                </div>
+                <div class="form-group">
+                  <label>Active Theme Preset</label>
+                  <input id="setting-theme-name" type="text" class="form-control" readonly style="background: #f8fafc; font-weight: 600; text-transform: capitalize;">
+                </div>
+              </div>
+            </div>
+
+            <!-- Practical Data & Queue Controls (Point 4 Cleaned) -->
+            <div id="settings-data-management-card" class="content-card">
+              <div class="card-header">
+                <h3 class="card-title">Database & Queue Controls</h3>
+                <p class="card-subtitle">Manage calling queue and call logs</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 12px; padding: 10px 0;">
+                <button id="btn-clear-leads" class="btn btn-secondary" style="justify-content: flex-start; gap: 10px; color: #b91c1c;">
+                  <span>🧹</span> <strong>Clear All Leads & Queue</strong>
+                </button>
+                <button id="btn-clear-history" class="btn btn-secondary" style="justify-content: flex-start; gap: 10px; color: var(--danger);">
+                  <span>🗑️</span> <strong>Clear Call Logs History</strong>
+                </button>
+                <p style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">
+                  Use these controls to reset calling records or purge all queue items to start completely clean.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+                <!-- Producer Information (BrandB) -->
+          <div class="content-card" style="margin-top: 20px; border-left: 4px solid var(--primary);">
+            <div class="card-header" style="justify-content: space-between; align-items: center;">
+              <div>
+                <h3 class="card-title">System & Producer Information</h3>
+                <p class="card-subtitle">Enterprise Telecalling Platform Architecture</p>
+              </div>
+              <div class="powered-by-brandb light">
+                <span>Powered by</span>
+                <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgBncrIxBQ6aqKYMaEDfbYf27SZ1epRflTNXWL7aa-EV31BQmTAcNnwTg33gkjbvGXgXe7vT30wdXDgGxwBaqK2V-FqevCWnd4LJmp9JRIlA-Zas53te6Z2KSoq0lNCOUDTfydnHw-oS6x7wWeHJEKAF2oWIqnZtr_qmpA-wTX15tMsJnnLL2_-X6vbBrY" alt="BrandB" class="brandb-logo" onerror="this.style.display='none'">
+                <strong>BrandB</strong>
+              </div>
+            </div>
+            <div style="padding: 8px 0; font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+              Engineered & powered by <strong>BrandB</strong>. High-velocity outreach CRM featuring live queue management, round-robin lead allocation, and integrated Smart Dialer.
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MOBILE COMPANION APP VIEW
+       ======================================================================== -->
+  <div id="mobile-preview-container" class="mobile-preview-wrapper" style="display: none;">
+    <div class="mobile-device-frame">
+      
+      <div class="mobile-status-bar">
+        <span id="mobile-clock">14:06</span>
+        <div class="mobile-status-icons">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2"></rect><line x1="23" y1="13" x2="23" y2="11"></line></svg>
+        </div>
+      </div>
+
+      <div class="mobile-screen-content">
+
+        <!-- MOBILE SCREEN 1: LOGIN -->
+        <div id="mobile-screen-login" class="mobile-tab-pane mobile-login-view" style="display: none;">
+          <div class="mobile-login-card">
+            <div class="mobile-app-icon">
+              <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+              </svg>
+            </div>
+            <h2 class="mobile-app-title">TeleCalling CRM</h2>
+            <p class="mobile-app-subtitle">Caller Mobile Companion</p>
+
+            <div class="mobile-input-wrap">
+              <span class="left-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              </span>
+              <input id="m-login-email" type="email" class="mobile-input-dark" placeholder="you@company.com" >
+            </div>
+
+            <div class="mobile-input-wrap">
+              <span class="left-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              </span>
+              <input id="m-login-password" type="password" class="mobile-input-dark" placeholder="••••••••" >
+            </div>
+
+            <button id="mobile-btn-signin" class="mobile-btn-signin">Sign In</button>
+          </div>
+        </div>
+
+        <!-- MOBILE SCREEN 2: HOME -->
+        <div id="mobile-screen-home" class="mobile-tab-pane active mobile-home-view">
+          <div class="mobile-header-band">
+            <div class="mobile-greeting">
+              <h2 id="mobile-greeting-name">Hello, Team</h2>
+              <span class="mobile-shift-badge">● Online</span>
+            </div>
+            <div class="mobile-header-bell" title="Quick notifications">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </div>
+          </div>
+
+          <div class="mobile-body-content">
+            <!-- Hero Card: Next Caller -->
+            <div class="next-caller-card">
+              <div class="card-badge">Next In Queue</div>
+              <div class="caller-info-row">
+                <div class="caller-avatar">
+                  <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
+                <div class="caller-details">
+                  <h3 id="mobile-hero-caller-name">Queue is Ready</h3>
+                  <div id="mobile-hero-caller-org" class="caller-org">Outreach Queue</div>
+                  <div id="mobile-hero-caller-phone" class="caller-phone">--</div>
+                </div>
+              </div>
+
+              <div class="caller-actions-row">
+                <button id="btn-mobile-start-calling" class="btn-start-calling" title="Launch Smart Dialer">
+                  <svg width="18" height="18" fill="none" stroke="#4f22cc" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                  </svg>
+                  Start Calling
+                </button>
+                <a id="btn-mobile-hero-whatsapp" href="#" target="_blank" class="btn-pause-caller" style="background: #25D366; color: #fff;" title="Chat on WhatsApp">
+                  💬
+                </a>
+                <button id="btn-mobile-skip-lead" class="btn-pause-caller" title="Skip to Next Lead">
+                  ⏭️
+                </button>
+              </div>
+            </div>
+
+            <!-- Today Statistics 2x2 Grid -->
+            <h3 class="mobile-section-header">Today's Statistics</h3>
+            <div class="mobile-stats-grid">
+              <div class="mobile-stat-card clickable-box" onclick="flowMobileBox('pending')" title="Tap to view pending leads">
+                <div class="card-top">
+                  <div class="stat-icon-wrap amber">📋</div>
+                  <span class="stat-label">Pending</span>
+                </div>
+                <div id="m-stat-pending" class="stat-num">6</div>
+              </div>
+
+              <div class="mobile-stat-card clickable-box" onclick="flowMobileBox('completed')" title="Tap to view completed calls">
+                <div class="card-top">
+                  <div class="stat-icon-wrap blue">📞</div>
+                  <span class="stat-label">Completed</span>
+                </div>
+                <div id="m-stat-calls" class="stat-num">0</div>
+              </div>
+
+              <div class="mobile-stat-card clickable-box" onclick="flowMobileBox('leads')" title="Tap to view qualified leads">
+                <div class="card-top">
+                  <div class="stat-icon-wrap green">⭐</div>
+                  <span class="stat-label">Leads</span>
+                </div>
+                <div id="m-stat-leads" class="stat-num">0</div>
+              </div>
+
+              <div class="mobile-stat-card clickable-box" onclick="flowMobileBox('followups')" title="Tap to view callbacks">
+                <div class="card-top">
+                  <div class="stat-icon-wrap purple">⏰</div>
+                  <span class="stat-label">Follow-ups</span>
+                </div>
+                <div id="m-stat-followups" class="stat-num">0</div>
+              </div>
+            </div>
+
+            <h3 class="mobile-section-header" style="margin-top: 18px;">Up Next In Queue</h3>
+            <div id="mobile-home-queue-preview" style="display: flex; flex-direction: column; gap: 8px;">
+            </div>
+
+                      <!-- Powered by BrandB Footer Badge on Mobile Home -->
+            <div style="text-align: center; margin: 22px 0 10px;">
+              <div class="powered-by-brandb mobile">
+                <span>Powered by</span>
+                <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgBncrIxBQ6aqKYMaEDfbYf27SZ1epRflTNXWL7aa-EV31BQmTAcNnwTg33gkjbvGXgXe7vT30wdXDgGxwBaqK2V-FqevCWnd4LJmp9JRIlA-Zas53te6Z2KSoq0lNCOUDTfydnHw-oS6x7wWeHJEKAF2oWIqnZtr_qmpA-wTX15tMsJnnLL2_-X6vbBrY" alt="BrandB" class="brandb-logo" onerror="this.style.display='none'">
+                <strong>BrandB</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MOBILE SCREEN 3: LEADS QUEUE -->
+        <div id="mobile-screen-leads" class="mobile-tab-pane mobile-home-view" style="display: none;">
+          <div class="mobile-header-band" style="padding: 16px 14px 10px;">
+            <div class="mobile-greeting">
+              <h2>My Outreach Leads</h2>
+            </div>
+          </div>
+
+          <div style="padding: 10px 14px 0 14px;">
+            <div class="search-box" style="margin-bottom: 8px;">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input id="mobile-leads-search" type="text" placeholder="Search name or phone...">
+            </div>
+
+            <div id="mobile-leads-pills" class="filter-pills-bar" style="margin-bottom: 4px;">
+              <button class="filter-pill active" data-m-status="Pending">Pending</button>
+              <button class="filter-pill" data-m-status="Callback">Callback</button>
+              <button class="filter-pill" data-m-status="Interested">Interested</button>
+              <button class="filter-pill" data-m-status="All">All</button>
+            </div>
+          </div>
+
+          <div id="mobile-leads-container" class="mobile-leads-list">
+          </div>
+        </div>
+
+        <!-- MOBILE SCREEN 4: SMART DIALER -->
+        <div id="mobile-screen-dialer" class="mobile-tab-pane smart-dialer-view" style="display: none;">
+          <div class="dialer-header">
+            <div class="dialer-header-left">
+              <button id="btn-dialer-back" class="dialer-header-btn" title="Back to queue">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+              </button>
+              <div>
+                <div id="dialer-lead-name" class="dialer-header-title">Smart Dialer Queue</div>
+                <div id="dialer-lead-phone" style="font-size: 11.5px; opacity: 0.85;">--</div>
+              </div>
+            </div>
+            <a id="btn-dialer-tel-link" href="tel:--" class="dialer-header-btn" style="background: #10b981; color: #fff;" title="Direct System Phone Call">
+              📞
+            </a>
+          </div>
+
+          <div class="call-summary-sheet">
+            <div class="sheet-handle"></div>
+            <h3 class="sheet-title">Call Summary & Outcome</h3>
+
+            <div class="call-duration-pill" style="cursor: pointer;" id="btn-toggle-dialer-timer" title="Click to pause/resume timer">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span id="dialer-duration-text">Duration: 0:00</span>
+              <span id="dialer-timer-icon" class="check-icon">▶</span>
+            </div>
+
+            <div>
+              <div class="outcome-section-title" style="margin-bottom: 8px;">Select Call Outcome</div>
+              <div class="outcomes-grid">
+                <button class="outcome-pill interested selected" data-outcome="Interested">
+                  <span>👍</span>
+                  <span>Interested</span>
+                </button>
+                <button class="outcome-pill callback" data-outcome="Callback">
+                  <span>📞</span>
+                  <span>Callback</span>
+                </button>
+                <button class="outcome-pill not-lifting" data-outcome="Not Lifting">
+                  <span>⌛</span>
+                  <span>Not Lifting</span>
+                </button>
+                <button class="outcome-pill not-interested" data-outcome="Not Interested">
+                  <span>👎</span>
+                  <span>Not Interested</span>
+                </button>
+                <button class="outcome-pill invalid" data-outcome="Invalid">
+                  <span>🚫</span>
+                  <span>Invalid</span>
+                </button>
+              </div>
+            </div>
+
+            <div id="dialer-callback-box" class="callback-scheduler-box">
+              <label>📅 Scheduled Callback Date & Time</label>
+              <input id="dialer-callback-datetime" type="datetime-local" class="form-control">
+            </div>
+
+            <div>
+              <div class="notes-header-row" style="margin-bottom: 6px;">
+                <span class="notes-title">Call Notes</span>
+                <span id="notes-char-counter" class="char-counter">0/100</span>
+              </div>
+              <div class="notes-input-wrapper">
+                <textarea id="dialer-notes-input" class="notes-textarea" placeholder="Add key discussion points, pricing, or objections..." maxlength="100"></textarea>
+                <button id="btn-dialer-mic" class="btn-mic-voice" type="button" title="Voice mic dictation">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div class="outcome-section-title" style="margin-bottom: 4px;">Quick Tags</div>
+              <div class="quick-tags-container">
+                <button type="button" class="quick-tag-btn" data-tag="WhatsApp Sent">💬 WhatsApp Sent</button>
+                <button type="button" class="quick-tag-btn" data-tag="Sent Brochure">📄 Sent Brochure</button>
+                <button type="button" class="quick-tag-btn" data-tag="Decision Maker">👑 Decision Maker</button>
+                <button type="button" class="quick-tag-btn" data-tag="High Value">💎 High Budget</button>
+              </div>
+            </div>
+
+            <button id="btn-confirm-next" class="btn-confirm-call">
+              <span>Confirm & Next Call</span>
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- MOBILE SCREEN 5: CALL HISTORY -->
+        <div id="mobile-screen-history" class="mobile-tab-pane mobile-home-view" style="display: none;">
+          <div class="mobile-header-band" style="padding: 16px 14px 10px;">
+            <div class="mobile-greeting">
+              <h2>Recent Call Logs</h2>
+            </div>
+          </div>
+          <div id="mobile-history-container" class="mobile-history-list">
+          </div>
+        </div>
+
+        <!-- MOBILE SCREEN 6: PROFILE -->
+        <div id="mobile-screen-profile" class="mobile-tab-pane mobile-home-view" style="display: none;">
+          <div class="mobile-profile-container">
+            <div class="mobile-profile-hero">
+              <div id="m-profile-avatar" class="big-avatar">B</div>
+              <h2 id="m-profile-name" style="font-size: 18px;">Administrator</h2>
+              <p id="m-profile-role" style="font-size: 13px; opacity: 0.85;">Telecalling Admin</p>
+              
+              <div class="shift-status-row">
+                <button class="shift-btn active" data-shift="Online">Online</button>
+                <button class="shift-btn" data-shift="Break">On Break</button>
+                <button class="shift-btn" data-shift="Offline">Offline</button>
+              </div>
+            </div>
+
+            <div class="content-card" style="padding: 14px;">
+              <h4 style="font-size: 13.5px; margin-bottom: 8px;">Daily Calling Target</h4>
+              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                <span id="m-target-text">0 / 50 calls completed</span>
+                <span id="m-target-pct">0%</span>
+              </div>
+              <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                <div id="m-target-bar" style="height: 100%; width: 0%; background: var(--primary);"></div>
+              </div>
+            </div>
+
+            <button id="btn-mobile-logout" class="btn-mobile-logout" title="Sign out of CRM session">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              Sign Out of Mobile App
+            </button>
+            <div style="text-align: center; margin-top: 14px;">
+              <div class="powered-by-brandb mobile">
+                <span>Powered by</span>
+                <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgBncrIxBQ6aqKYMaEDfbYf27SZ1epRflTNXWL7aa-EV31BQmTAcNnwTg33gkjbvGXgXe7vT30wdXDgGxwBaqK2V-FqevCWnd4LJmp9JRIlA-Zas53te6Z2KSoq0lNCOUDTfydnHw-oS6x7wWeHJEKAF2oWIqnZtr_qmpA-wTX15tMsJnnLL2_-X6vbBrY" alt="BrandB" class="brandb-logo" onerror="this.style.display='none'">
+                <strong>BrandB</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <nav id="mobile-bottom-nav" class="mobile-bottom-nav">
+        <button class="mobile-nav-item active" data-tab="home">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>Home</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="leads">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+          <span>Leads</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="dialer">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span>Dialer</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="history">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+          <span>History</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="profile">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"></circle><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path></svg>
+          <span>Profile</span>
+        </button>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODALS
+       ======================================================================== -->
+
+  <!-- MODAL 1: ADD TEAM MEMBER -->
+  <div id="modal-add-member" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>Add Team Member</h3>
+          <p>Invite a new telecaller or manager to your outreach team</p>
+        </div>
+        <button class="modal-close-btn btn-close-add-member">&times;</button>
+      </div>
+      <form id="form-add-member">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input id="member-name" type="text" class="form-control" placeholder="Your Name" required>
+            </div>
+            <div class="form-group">
+              <label>Work Email *</label>
+              <input id="member-email" type="email" class="form-control" placeholder="your.email@company.com" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input id="member-phone" type="tel" class="form-control" placeholder="9876543210">
+            </div>
+            <div class="form-group">
+              <label>Role</label>
+              <select id="member-role" class="form-control">
+                <option value="Caller">Caller / Telecaller</option>
+                <option value="Team Lead">Team Leader</option>
+                <option value="Manager">Team Manager</option>
+                <option value="Admin">Administrator</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Password</label>
+            <div class="password-field-wrapper">
+              <input id="member-password" type="password" class="form-control" placeholder="Set initial password" oninput="updatePasswordStrength(this.value)">
+            </div>
+            <div class="strength-meter-bar">
+              <div id="strength-meter-fill" class="strength-meter-fill"></div>
+            </div>
+            <div id="strength-meter-text" class="strength-text">Enter at least 6 characters</div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-add-member">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Member</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: UPLOAD EXCEL / CSV -->
+  <div id="modal-upload-excel" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>Upload Contacts Batch</h3>
+          <p>Import leads from Excel or CSV file</p>
+        </div>
+        <button class="modal-close-btn btn-close-upload-excel">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="download-sample-box" style="margin-bottom: 16px; padding: 12px 14px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <strong style="font-size: 13px;">Need the standard format?</strong>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Download our pre-formatted sample CSV file.</p>
+          </div>
+          <button id="btn-download-sample" class="btn btn-secondary" style="font-size: 12px;">Download Sample CSV</button>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label>Assign Lead Source</label>
+          <select id="excel-lead-source" class="form-control">
+            <option value="Excel Upload">Excel Upload</option>
+            <option value="Website Leads">Website Leads</option>
+            <option value="Google Ads">Google Ads</option>
+            <option value="Facebook Ads">Facebook Ads</option>
+            <option value="Cold Calling">Cold Calling</option>
+          </select>
+        </div>
+
+        <div id="file-dropzone" class="file-dropzone" style="border: 2px dashed #c7b5fb; background: #faf5ff; border-radius: 12px; padding: 30px; text-align: center; cursor: pointer;">
+          <input type="file" id="excel-file-input" accept=".csv,.xlsx,.xls,.txt" style="display: none;">
+          <div class="dropzone-icon" style="font-size: 32px; margin-bottom: 8px;">📂</div>
+          <div class="dropzone-text">
+            <h4 style="font-size: 14px; font-weight: 700; color: var(--primary);">Drop your file here, or browse</h4>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Supports CSV, XLSX, XLS up to 25MB</p>
+          </div>
+        </div>
+
+        <div id="upload-preview-count" style="display: none; margin-top: 12px; font-size: 12.5px; color: var(--success); font-weight: 600;">
+          ✓ Found <span id="parsed-leads-count">0</span> valid leads ready for import!
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-close-upload-excel">Cancel</button>
+        <button id="btn-confirm-upload" class="btn btn-primary">Import Leads</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: ADD SINGLE LEAD -->
+  <div id="modal-add-lead" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>Add New Lead</h3>
+          <p>Create a single contact in the outreach queue</p>
+        </div>
+        <button class="modal-close-btn btn-close-add-lead">&times;</button>
+      </div>
+      <form id="form-add-lead">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Contact Name *</label>
+              <input id="new-lead-name" type="text" class="form-control" placeholder="Deepak Sharma" required>
+            </div>
+            <div class="form-group">
+              <label>Phone Number *</label>
+              <input id="new-lead-phone" type="tel" class="form-control" placeholder="9876543210" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Organization / Company</label>
+              <input id="new-lead-org" type="text" class="form-control" placeholder="Apex Solutions">
+            </div>
+            <div class="form-group">
+              <label>Lead Source</label>
+              <select id="new-lead-source" class="form-control">
+                <option value="Website Leads">Website Leads</option>
+                <option value="Excel Upload">Excel Upload</option>
+                <option value="Google Ads">Google Ads</option>
+                <option value="Facebook Ads">Facebook Ads</option>
+                <option value="Cold Calling">Cold Calling</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Assign To Telecaller</label>
+            <select id="new-lead-assigned" class="form-control">
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-add-lead">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Lead</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: DYNAMIC CUSTOM FIELDS -->
+  <div id="modal-custom-field" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>Dynamic Lead Schema</h3>
+          <p>Add custom metadata fields to every lead record</p>
+        </div>
+        <button class="modal-close-btn btn-close-custom-field">&times;</button>
+      </div>
+      <form id="form-custom-field">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Field Name</label>
+            <input id="custom-field-name" type="text" class="form-control" placeholder="e.g. Annual Revenue, City, Product" required>
+          </div>
+          <div class="form-group">
+            <label>Field Type</label>
+            <select id="custom-field-type" class="form-control">
+              <option value="text">Text String</option>
+              <option value="number">Numeric</option>
+              <option value="dropdown">Dropdown Select</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-custom-field">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Field</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 5: ADD AUTHORIZED USER (Admin Only) -->
+  <div id="modal-add-authorized-user" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>Add Authorized Personnel</h3>
+          <p>Grant login permission and role level to a new user</p>
+        </div>
+        <button class="modal-close-btn btn-close-add-auth">&times;</button>
+      </div>
+      <form id="form-add-authorized-user">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input id="auth-new-name" type="text" class="form-control" placeholder="Your Name" required>
+            </div>
+            <div class="form-group">
+              <label>Authorized Work Email *</label>
+              <input id="auth-new-email" type="email" class="form-control" placeholder="your.email@company.com" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Initial Password *</label>
+              <input id="auth-new-password" type="password" class="form-control" placeholder="min 6 characters" required>
+            </div>
+            <div class="form-group">
+              <label>Permission Tier / Role *</label>
+              <select id="auth-new-role" class="form-control">
+                <option value="Caller">Telecaller (Dialer & Assigned Leads Only)</option>
+                <option value="Team Lead">Team Leader (Squad Leads & Monitor)</option>
+                <option value="Manager">Team Manager (Team Leading & Rules)</option>
+                <option value="Admin">Administrator (Full Access)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-add-auth">Cancel</button>
+          <button type="submit" class="btn btn-primary">Authorize Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Master Logic -->
+  <script src="app.js"></script>
+
+  <!-- MODAL: EDIT AUTHORIZED USER CREDENTIALS (Admin Only) -->
+  <div id="modal-edit-authorized-user" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>Edit Authorized Personnel</h3>
+          <p>Modify work email, update login password, and manage permission tier</p>
+        </div>
+        <button class="modal-close-btn btn-close-edit-auth">&times;</button>
+      </div>
+      <form id="form-edit-authorized-user">
+        <input type="hidden" id="auth-edit-id">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input id="auth-edit-name" type="text" class="form-control" placeholder="Full Name" required>
+            </div>
+            <div class="form-group">
+              <label>Authorized Work Email *</label>
+              <input id="auth-edit-email" type="email" class="form-control" placeholder="user@company.com" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Login Password *</label>
+              <div class="input-wrapper" style="position: relative; display: flex; align-items: center;">
+                <input id="auth-edit-password" type="password" class="form-control" placeholder="Enter new password" required style="padding-right: 40px;">
+                <button type="button" id="btn-toggle-edit-pwd" class="password-toggle-btn" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94a3b8;" title="Show/Hide Password">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+              <small style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">Updating this password takes effect immediately for login.</small>
+            </div>
+            <div class="form-group">
+              <label>Permission Tier / Role *</label>
+              <select id="auth-edit-role" class="form-control">
+                <option value="Caller">Telecaller (Dialer & Assigned Leads Only)</option>
+                <option value="Team Lead">Team Leader (Squad Leads & Queue)</option>
+                <option value="Manager">Team Manager (Team Leading & Rules)</option>
+                <option value="Admin">Administrator (Full Access)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Account Status</label>
+            <select id="auth-edit-status" class="form-control">
+              <option value="Active">Active (Permitted to Log In)</option>
+              <option value="Suspended">Suspended (Access Denied at Login)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-close-edit-auth">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "appId": "com.brandb.telecallingcrm",
+  "appName": "Telecalling CRM",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "cleartext": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#059669",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#047857"
+    }
+  }
+}

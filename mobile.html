@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="crm-config.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#6f2df2">
+  <title>Telecalling CRM - Mobile Dialer Window</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="menus.css">
+  <link rel="stylesheet" href="team.css">
+  <link rel="stylesheet" href="configuration.css">
+  <style>
+    body.mobile-window-body {
+      margin: 0;
+      padding: 0;
+      background: #0b0717;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+    }
+    .mobile-window-topbar {
+      width: 100%;
+      max-width: 440px;
+      background: var(--primary-active, #064e3b);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      font-size: 13px;
+      box-sizing: border-box;
+      z-index: 100;
+    }
+    .mobile-window-topbar .sync-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.16);
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .mobile-window-topbar .link-desktop {
+      color: #c4b5fd;
+      text-decoration: none;
+      font-size: 11.5px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      transition: all 0.2s ease;
+    }
+    .mobile-window-topbar .link-desktop:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .mobile-window-body .mobile-device-frame {
+      width: 100% !important;
+      max-width: 440px !important;
+      height: calc(100vh - 46px) !important;
+      min-height: 580px;
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+      display: flex !important;
+      flex-direction: column !important;
+      background: #ffffff;
+      position: relative;
+    }
+    .mobile-screen-content {
+      flex: 1;
+      overflow-y: auto;
+      position: relative;
+    }
+    #toast-notification {
+      position: fixed;
+      bottom: 74px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e1b4b;
+      color: #ffffff;
+      padding: 9px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+      z-index: 99999;
+      display: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      white-space: nowrap;
+    }
+  </style>
+  <script>
+    const uKey = (window.CRM_STORAGE ? CRM_STORAGE.getUserKey() : 'crm_user');
+    if (!localStorage.getItem(uKey) && !localStorage.getItem('crm_user')) {
+      window.location.replace('login.html');
+    }
+  </script>
+</head>
+<body class="mobile-window-body">
+
+  <!-- Window Header Bar -->
+  <div class="mobile-window-topbar">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span class="sync-indicator" title="Real-time synchronized with Desktop CRM">● Live Synced</span>
+      <span style="font-weight: 600; font-size: 12.5px;">Mobile Dialer</span>
+    </div>
+    <a href="index.html" target="_blank" class="link-desktop" title="Open Desktop Workspace in browser">
+      💻 Desktop CRM ↗
+    </a>
+  </div>
+<div class="mobile-device-frame">
+      
+      <div class="mobile-status-bar">
+        <span id="mobile-clock">14:06</span>
+        <div class="mobile-status-icons">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2"></rect><line x1="23" y1="13" x2="23" y2="11"></line></svg>
+        </div>
+      </div>
+
+      <div class="mobile-screen-content">
+
+        <!-- MOBILE SCREEN 1: LOGIN -->
+        <div id="mobile-screen-login" class="mobile-tab-pane mobile-login-view" style="display: none;">
+          <div class="mobile-login-card">
+            <div class="mobile-app-icon">
+              <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+              </svg>
+            </div>
+            <h2 class="mobile-app-title">TeleCalling CRM</h2>
+            <p class="mobile-app-subtitle">Caller Mobile Companion</p>
+
+            <div class="mobile-input-wrap">
+              <span class="left-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              </span>
+              <input id="m-login-email" type="email" class="mobile-input-dark" placeholder="you@company.com" >
+            </div>
+
+            <div class="mobile-input-wrap">
+              <span class="left-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              </span>
+              <input id="m-login-password" type="password" class="mobile-input-dark" placeholder="••••••••" >
+            </div>
+
+            <button id="mobile-btn-signin" class="mobile-btn-signin">Sign In</button>
+          </div>
+        </div>
+
+        <!-- MOBILE SCREEN 2: HOME -->
+        <div id="mobile-screen-home" class="mobile-tab-pane active mobile-home-view">
+          <div class="mobile-header-band">
+            <div class="mobile-greeting">
+              <h2 id="mobile-greeting-name">Hello, Team</h2>
+              <span class="mobile-shift-badge">● Online</span>
+            </div>
+            <div class="mobile-header-bell" title="Quick notifications">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </div>
+          </div>
+
+          <div class="mobile-body-content">
+            <!-- Hero Card: Next Caller -->
+            <div class="next-caller-card">
+              <div class="card-badge">Next In Queue</div>
+              <div class="caller-info-row">
+                <div class="caller-avatar">
+                  <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
+                <div class="caller-details">
+                  <h3 id="mobile-hero-caller-name">Queue is Ready</h3>
+                  <div id="mobile-hero-caller-org" class="caller-org">Outreach Queue</div>
+                  <div id="mobile-hero-caller-phone" class="caller-phone">--</div>
+                </div>
+              </div>
+
+              <div class="caller-actions-row">
+                <button id="btn-mobile-start-calling" class="btn-start-calling" title="Launch Smart Dialer">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                  </svg>
+                  Start Calling
+                </button>
+                <a id="btn-mobile-hero-whatsapp" href="#" target="_blank" class="btn-pause-caller" style="background: #25D366; color: #fff;" title="Chat on WhatsApp">
+                  💬
+                </a>
+                <button id="btn-mobile-skip-lead" class="btn-pause-caller" title="Skip to Next Lead">
+                  ⏭️
+                </button>
+              </div>
+            </div>
+
+            <!-- Today Statistics 2x2 Grid -->
+            <h3 class="mobile-section-header">Today's Statistics</h3>
+            <div class="mobile-stats-grid">
+              <div class="mobile-stat-card clickable-box" onclick="flowMobileBox('pending')" title="Tap to view pending leads">
+                <div class="card-top">
+                  <div class="stat-icon-wrap amber">📋</div>
+                  <span class="stat-label">Pending</span>
+                </div>
+                <div id="m-stat-pending" class="stat-num">6</div>
+              </div>
+
+              <div class="mobile-stat-card clickable-box" onclick="flowMobileBox('completed')" title="Tap to view completed calls">
+                <div class="card-top">
+                  <div class="stat-icon-wrap blue">📞</div>
+                  <span class="stat-label">Completed</span>
+                </div>
+                <div id="m-stat-calls" class="stat-num">0</div>
+              </div>
+
+              <div class="mobile-stat-card clickable-box" onclick="flowMobileBox('leads')" title="Tap to view qualified leads">
+                <div class="card-top">
+                  <div class="stat-icon-wrap green">⭐</div>
+                  <span class="stat-label">Leads</span>
+                </div>
+                <div id="m-stat-leads" class="stat-num">0</div>
+              </div>
+
+              <div class="mobile-stat-card clickable-box" onclick="flowMobileBox('followups')" title="Tap to view callbacks">
+                <div class="card-top">
+                  <div class="stat-icon-wrap purple">⏰</div>
+                  <span class="stat-label">Follow-ups</span>
+                </div>
+                <div id="m-stat-followups" class="stat-num">0</div>
+              </div>
+            </div>
+
+            <h3 class="mobile-section-header" style="margin-top: 18px;">Up Next In Queue</h3>
+            <div id="mobile-home-queue-preview" style="display: flex; flex-direction: column; gap: 8px;">
+            </div>
+
+                      <!-- Powered by BrandB Footer Badge on Mobile Home -->
+            <div style="text-align: center; margin: 22px 0 10px;">
+              <div class="powered-by-brandb mobile">
+                <span>Powered by</span>
+                <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgBncrIxBQ6aqKYMaEDfbYf27SZ1epRflTNXWL7aa-EV31BQmTAcNnwTg33gkjbvGXgXe7vT30wdXDgGxwBaqK2V-FqevCWnd4LJmp9JRIlA-Zas53te6Z2KSoq0lNCOUDTfydnHw-oS6x7wWeHJEKAF2oWIqnZtr_qmpA-wTX15tMsJnnLL2_-X6vbBrY" alt="BrandB" class="brandb-logo" onerror="this.style.display='none'">
+                <strong>BrandB</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MOBILE SCREEN 3: LEADS QUEUE -->
+        <div id="mobile-screen-leads" class="mobile-tab-pane mobile-home-view" style="display: none;">
+          <div class="mobile-header-band" style="padding: 16px 14px 10px;">
+            <div class="mobile-greeting">
+              <h2>My Outreach Leads</h2>
+            </div>
+          </div>
+
+          <div style="padding: 10px 14px 0 14px;">
+            <div class="search-box" style="margin-bottom: 8px;">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input id="mobile-leads-search" type="text" placeholder="Search name or phone...">
+            </div>
+
+            <div id="mobile-leads-pills" class="filter-pills-bar" style="margin-bottom: 4px;">
+              <button class="filter-pill active" data-m-status="Pending">Pending</button>
+              <button class="filter-pill" data-m-status="Callback">Callback</button>
+              <button class="filter-pill" data-m-status="Interested">Interested</button>
+              <button class="filter-pill" data-m-status="All">All</button>
+            </div>
+          </div>
+
+          <div id="mobile-leads-container" class="mobile-leads-list">
+          </div>
+        </div>
+
+        <!-- MOBILE SCREEN 4: SMART DIALER -->
+        <div id="mobile-screen-dialer" class="mobile-tab-pane smart-dialer-view" style="display: none;">
+          <div class="dialer-header">
+            <div class="dialer-header-left">
+              <button id="btn-dialer-back" class="dialer-header-btn" title="Back to queue">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+              </button>
+              <div>
+                <div id="dialer-lead-name" class="dialer-header-title">Smart Dialer Queue</div>
+                <div id="dialer-lead-phone" style="font-size: 11.5px; opacity: 0.85;">--</div>
+              </div>
+            </div>
+            <a id="btn-dialer-tel-link" href="tel:--" class="dialer-header-btn" style="background: #10b981; color: #fff;" title="Direct System Phone Call">
+              📞
+            </a>
+          </div>
+
+          <div class="call-summary-sheet">
+            <div class="sheet-handle"></div>
+            <h3 class="sheet-title">Call Summary & Outcome</h3>
+
+            <div class="call-duration-pill" style="cursor: pointer;" id="btn-toggle-dialer-timer" title="Click to pause/resume timer">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span id="dialer-duration-text">Duration: 0:00</span>
+              <span id="dialer-timer-icon" class="check-icon">▶</span>
+            </div>
+
+            <div>
+              <div class="outcome-section-title" style="margin-bottom: 8px;">Select Call Outcome</div>
+              <div class="outcomes-grid">
+                <button class="outcome-pill interested selected" data-outcome="Interested">
+                  <span>👍</span>
+                  <span>Interested</span>
+                </button>
+                <button class="outcome-pill callback" data-outcome="Callback">
+                  <span>📞</span>
+                  <span>Callback</span>
+                </button>
+                <button class="outcome-pill not-lifting" data-outcome="Not Lifting">
+                  <span>⌛</span>
+                  <span>Not Lifting</span>
+                </button>
+                <button class="outcome-pill not-interested" data-outcome="Not Interested">
+                  <span>👎</span>
+                  <span>Not Interested</span>
+                </button>
+                <button class="outcome-pill invalid" data-outcome="Invalid">
+                  <span>🚫</span>
+                  <span>Invalid</span>
+                </button>
+              </div>
+            </div>
+
+            <div id="dialer-callback-box" class="callback-scheduler-box">
+              <label>📅 Scheduled Callback Date & Time</label>
+              <input id="dialer-callback-datetime" type="datetime-local" class="form-control">
+            </div>
+
+            <div>
+              <div class="notes-header-row" style="margin-bottom: 6px;">
+                <span class="notes-title">Call Notes</span>
+                <span id="notes-char-counter" class="char-counter">0/100</span>
+              </div>
+              <div class="notes-input-wrapper">
+                <textarea id="dialer-notes-input" class="notes-textarea" placeholder="Add key discussion points, pricing, or objections..." maxlength="100"></textarea>
+                <button id="btn-dialer-mic" class="btn-mic-voice" type="button" title="Voice mic dictation">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div class="outcome-section-title" style="margin-bottom: 4px;">Quick Tags</div>
+              <div class="quick-tags-container">
+                <button type="button" class="quick-tag-btn" data-tag="WhatsApp Sent">💬 WhatsApp Sent</button>
+                <button type="button" class="quick-tag-btn" data-tag="Sent Brochure">📄 Sent Brochure</button>
+                <button type="button" class="quick-tag-btn" data-tag="Decision Maker">👑 Decision Maker</button>
+                <button type="button" class="quick-tag-btn" data-tag="High Value">💎 High Budget</button>
+              </div>
+            </div>
+
+            <button id="btn-confirm-next" class="btn-confirm-call">
+              <span>Confirm & Next Call</span>
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- MOBILE SCREEN 5: CALL HISTORY -->
+        <div id="mobile-screen-history" class="mobile-tab-pane mobile-home-view" style="display: none;">
+          <div class="mobile-header-band" style="padding: 16px 14px 10px;">
+            <div class="mobile-greeting">
+              <h2>Recent Call Logs</h2>
+            </div>
+          </div>
+          <div id="mobile-history-container" class="mobile-history-list">
+          </div>
+        </div>
+
+        <!-- MOBILE SCREEN 6: PROFILE -->
+        <div id="mobile-screen-profile" class="mobile-tab-pane mobile-home-view" style="display: none;">
+          <div class="mobile-profile-container">
+            <div class="mobile-profile-hero">
+              <div id="m-profile-avatar" class="big-avatar">B</div>
+              <h2 id="m-profile-name" style="font-size: 18px;">Administrator</h2>
+              <p id="m-profile-role" style="font-size: 13px; opacity: 0.85;">Telecalling Admin</p>
+              
+              <div class="shift-status-row">
+                <button class="shift-btn active" data-shift="Online">Online</button>
+                <button class="shift-btn" data-shift="Break">On Break</button>
+                <button class="shift-btn" data-shift="Offline">Offline</button>
+              </div>
+            </div>
+
+            <div class="content-card" style="padding: 14px;">
+              <h4 style="font-size: 13.5px; margin-bottom: 8px;">Daily Calling Target</h4>
+              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+                <span id="m-target-text">0 / 50 calls completed</span>
+                <span id="m-target-pct">0%</span>
+              </div>
+              <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                <div id="m-target-bar" style="height: 100%; width: 0%; background: var(--primary);"></div>
+              </div>
+            </div>
+
+            <button id="btn-mobile-logout" class="btn-mobile-logout" title="Sign out of CRM session">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              Sign Out of Mobile App
+            </button>
+            <div style="text-align: center; margin-top: 14px;">
+              <div class="powered-by-brandb mobile">
+                <span>Powered by</span>
+                <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgBncrIxBQ6aqKYMaEDfbYf27SZ1epRflTNXWL7aa-EV31BQmTAcNnwTg33gkjbvGXgXe7vT30wdXDgGxwBaqK2V-FqevCWnd4LJmp9JRIlA-Zas53te6Z2KSoq0lNCOUDTfydnHw-oS6x7wWeHJEKAF2oWIqnZtr_qmpA-wTX15tMsJnnLL2_-X6vbBrY" alt="BrandB" class="brandb-logo" onerror="this.style.display='none'">
+                <strong>BrandB</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <nav id="mobile-bottom-nav" class="mobile-bottom-nav">
+        <button class="mobile-nav-item active" data-tab="home">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>Home</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="leads">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+          <span>Leads</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="dialer">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span>Dialer</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="history">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+          <span>History</span>
+        </button>
+        <button class="mobile-nav-item" data-tab="profile">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"></circle><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path></svg>
+          <span>Profile</span>
+        </button>
+      </nav>
+
+    </div>
+  <!-- Toast Notification Container -->
+  <div id="toast-notification" class="toast-notification"></div>
+
+  <!-- Audio Chimes for Dialer -->
+  <audio id="audio-dial" preload="none">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="audio-connected" preload="none">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Load Core CRM Logic -->
+  <script src="app.js"></script>
+  <script>
+    // Standalone Mobile Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        if (typeof showMobileTab === 'function') {
+          showMobileTab('home');
+          setBottomNavActive('home');
+          updateMobileCallerHero();
+          renderMobileLeadsList();
+          renderMobileHistory();
+        }
+      }, 50);
+
+      // Listen for updates from desktop window
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'telecalling_crm_state' || e.key === 'crm_user') {
+          loadState();
+          initUserSession();
+          updateMobileCallerHero();
+          renderMobileLeadsList();
+          renderMobileHistory();
+        }
+      });
+    });
+  
+    // Role-based visibility for Mobile View
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const uKey = (window.CRM_STORAGE ? CRM_STORAGE.getUserKey() : 'crm_user');
+        const user = JSON.parse(localStorage.getItem(uKey) || localStorage.getItem('crm_user') || '{}');
+        const desktopLink = document.querySelector('.link-desktop');
+        if (desktopLink) {
+          // Callers do not have or need desktop access; Managers/Team Leads/Admins can toggle
+          if (user.role === 'Caller') {
+            desktopLink.style.display = 'none';
+          } else {
+            desktopLink.style.display = 'inline-flex';
+          }
+        }
+      } catch (e) {}
+    });
+
+  </script>
+
+  <script>
+    // Bulletproof Mobile Bottom Navigation & Screen Switching
+    document.addEventListener('DOMContentLoaded', () => {
+      const bottomNavItems = document.querySelectorAll('.mobile-bottom-nav .mobile-nav-item');
+      
+      bottomNavItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          bottomNavItems.forEach(n => n.classList.remove('active'));
+          item.classList.add('active');
+          const targetTab = item.getAttribute('data-tab');
+
+          // 1. Call app.js showMobileTab if available
+          if (typeof showMobileTab === 'function') {
+            showMobileTab(targetTab);
+          } else {
+            // Direct DOM fallback
+            const screens = ['home', 'leads', 'dialer', 'history', 'profile'];
+            screens.forEach(s => {
+              const el = document.getElementById('mobile-screen-' + s);
+              if (el) el.style.display = (s === targetTab) ? 'flex' : 'none';
+            });
+          }
+
+          // 2. Render specific tab content if needed
+          if (targetTab === 'leads' && typeof renderMobileLeadsList === 'function') {
+            renderMobileLeadsList();
+          }
+          if (targetTab === 'history' && typeof renderMobileHistory === 'function') {
+            renderMobileHistory();
+          }
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#059669">
+  <title>Sign In - Telecalling CRM</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <script src="crm-config.js"></script>
+  <style>
+    :root {
+      --primary: #059669;
+      --primary-hover: #047857;
+      --primary-gradient: linear-gradient(135deg, #059669 0%, #047857 100%);
+      --bg-dark: #071510;
+      --card-bg: #ffffff;
+      --text-main: #14142b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 10% 20%, rgba(5, 150, 105, 0.25) 0%, rgba(7, 21, 16, 0.98) 90%), #071510;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      color: #ffffff;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: 0;
+      pointer-events: none;
+    }
+    .orb-1 { width: 340px; height: 340px; background: rgba(5, 150, 105, 0.35); top: 10%; left: 15%; }
+    .orb-2 { width: 280px; height: 280px; background: rgba(16, 185, 129, 0.25); bottom: 10%; right: 15%; }
+
+    .login-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 450px;
+    }
+
+    .login-brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .brand-icon-box {
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+      background: var(--primary-gradient);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      box-shadow: 0 10px 25px rgba(5, 150, 105, 0.45);
+    }
+    .brand-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+    }
+    .brand-subtitle {
+      font-size: 13.5px;
+      color: #cbd5e1;
+      margin-top: 4px;
+    }
+
+    .security-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(5, 150, 105, 0.2);
+      border: 1px solid rgba(5, 150, 105, 0.4);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      color: #a7f3d0;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    .setup-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .login-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 32px 28px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .login-header {
+      margin-bottom: 22px;
+    }
+    .login-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.3px;
+    }
+    .login-header p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+    }
+    .form-control {
+      width: 100%;
+      height: 44px;
+      padding: 0 14px 0 42px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 13.5px;
+      color: #0f172a;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    .form-control:focus {
+      background: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+    }
+    .form-control[readonly] {
+      background: #f1f5f9;
+      color: #64748b;
+      cursor: not-allowed;
+    }
+
+    .password-toggle-btn {
+      position: absolute;
+      right: 12px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+    }
+    .password-toggle-btn:hover {
+      color: #475569;
+    }
+
+    .form-options-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 14px 0 20px;
+      font-size: 12.5px;
+    }
+    .form-options-row label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: #475569;
+      user-select: none;
+    }
+    .form-options-row a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .form-options-row a:hover {
+      text-decoration: underline;
+    }
+
+    .btn-submit {
+      width: 100%;
+      height: 46px;
+      background: var(--primary-gradient);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+    }
+    .btn-submit:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      border: 1px solid #fee2e2;
+      color: #b91c1c;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 16px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.4;
+    }
+
+    .alert-success {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 16px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.4;
+    }
+
+    .login-security-footer {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px dashed #e2e8f0;
+      text-align: center;
+      font-size: 11.5px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    /* Producer Company: Powered by BrandB */
+    .producer-footer {
+      margin-top: 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .powered-by-brandb {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      font-size: 13px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      text-decoration: none;
+    }
+    .brandb-logo {
+      height: 24px;
+      width: auto;
+      max-width: 100px;
+      object-fit: contain;
+    }
+    .producer-tagline {
+      font-size: 11.5px;
+      color: #94a3b8;
+      letter-spacing: 0.2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <div class="login-wrapper">
+    <!-- Brand Header -->
+    <div class="login-brand">
+      <div class="brand-icon-box">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      </div>
+      <div id="brand-header-title" class="brand-title">Telecalling CRM</div>
+      <div id="brand-header-sub" class="brand-subtitle">High-Velocity Outreach & Team Governance</div>
+      <div class="security-badge">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        Role-Based Access Control (RBAC) Active
+      </div>
+    </div>
+
+    <!-- INITIAL SETUP CARD (Shown automatically if no Super Admin exists) -->
+    <div id="login-card" class="login-card">
+      <div class="login-header">
+        <h2>Sign In to Workspace</h2>
+        <p>Enter your authorized work email and password to access your allocated outreach queue.</p>
+      </div>
+
+      <div id="login-error" class="alert-danger">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <span id="error-message">Access denied: Invalid credentials.</span>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-email">Authorized Work Email</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            </span>
+            <input id="login-email" type="email" class="form-control" placeholder="name@company.com" required autocomplete="username">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </span>
+            <input id="login-password" type="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+            <button id="btn-toggle-password" type="button" class="password-toggle-btn" title="Toggle password visibility">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="7" r="3"></circle></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-options-row">
+          <label>
+            <input type="checkbox" id="remember-me" checked>
+            <span>Keep me logged in</span>
+          </label>
+          
+        </div>
+
+        <button type="submit" id="btn-login-submit" class="btn-submit">
+          <span>Authenticate & Open CRM</span>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
+      </form>
+
+      <div class="login-security-footer">
+        🔒 <strong>Authorized Personnel Only</strong><br>
+        Access is governed by Administrator permissions configured in Settings.
+      </div>
+    </div>
+
+    <!-- Producer Company: Powered by BrandB with Logo -->
+    <div class="producer-footer">
+      <a href="https://brandb.in" target="_blank" class="powered-by-brandb" title="Brand.B Software Solutions">
+        <span>Powered by</span>
+        <img src="https://blogger.googleusercontent.com/img/a/AVvXsEgBncrIxBQ6aqKYMaEDfbYf27SZ1epRflTNXWL7aa-EV31BQmTAcNnwTg33gkjbvGXgXe7vT30wdXDgGxwBaqK2V-FqevCWnd4LJmp9JRIlA-Zas53te6Z2KSoq0lNCOUDTfydnHw-oS6x7wWeHJEKAF2oWIqnZtr_qmpA-wTX15tMsJnnLL2_-X6vbBrY" alt="BrandB" class="brandb-logo" onerror="this.style.display='none'">
+        <strong>BrandB</strong>
+      </a>
+      <div id="producer-tagline-text" class="producer-tagline">Enterprise Telecalling Platform Architecture</div>
+    </div>
+  </div>
+
+  <script>
+    // SHA-256 Hashing helper with fallback
+    async function sha256(message) {
+      if (!message) return '';
+      try {
+        if (window.crypto && window.crypto.subtle) {
+          const msgBuffer = new TextEncoder().encode(message);
+          const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+          return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+      } catch (e) {}
+      let hash = 0;
+      for (let i = 0; i < message.length; i++) {
+        hash = ((hash << 5) - hash) + message.charCodeAt(i);
+        hash |= 0;
+      }
+      return 'h_' + Math.abs(hash).toString(16);
+    }
+
+    // Comprehensive Fallback Configuration
+    const FALLBACK_CONFIG = {
+      companyName: "Nallayil Ayurvedha",
+      tagline: "Ayurvedic Healthcare & Wellness Outreach",
+      storagePrefix: "crm_nallayil",
+      adminUser: {
+        name: "Muhammed Munshid",
+        email: "kmunshidk@gmail.com",
+        password: "admin123",
+        role: "Admin"
+      },
+      defaultTeam: [
+        { name: "Muhammed Munshid", email: "kmunshidk@gmail.com", password: "admin123", role: "Admin" },
+        { name: "Rohit Verma", email: "rohit@company.com", password: "manager123", role: "Manager" },
+        { name: "Vikram Mehta", email: "vikram@company.com", password: "lead123", role: "Team Lead" },
+        { name: "Anika Sharma", email: "anika@company.com", password: "caller123", role: "Caller" }
+      ]
+    };
+
+    // Safely resolve active configuration
+    const config = (typeof window !== 'undefined' && window.CRM_CONFIG) 
+      ? window.CRM_CONFIG 
+      : (typeof CRM_CONFIG !== 'undefined' ? CRM_CONFIG : FALLBACK_CONFIG);
+
+    // Apply header texts
+    const brandHeaderTitle = document.getElementById('brand-header-title');
+    const brandHeaderSub = document.getElementById('brand-header-sub');
+    if (brandHeaderTitle && config.companyName) {
+      brandHeaderTitle.textContent = config.companyName;
+      document.title = `Sign In - ${config.companyName}`;
+    }
+    if (brandHeaderSub && config.tagline) {
+      brandHeaderSub.textContent = config.tagline;
+    }
+
+    // Storage Keys
+    const storagePrefix = config.storagePrefix || 'crm_nallayil';
+    const AUTH_KEY = storagePrefix + '_authorized_users';
+    const USER_KEY = storagePrefix + '_user';
+
+    // Toggle Password Visibility
+    const toggleBtn = document.getElementById('btn-toggle-password');
+    const pwdInput = document.getElementById('login-password');
+    if (toggleBtn && pwdInput) {
+      toggleBtn.addEventListener('click', () => {
+        pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
+      });
+    }
+
+    // Get Authorized Directory with Automatic Seeding
+    function getAuthorizedDirectory() {
+      let users = [];
+      try {
+        const saved = localStorage.getItem(AUTH_KEY);
+        if (saved) users = JSON.parse(saved);
+      } catch (e) {}
+
+      // Seed if empty
+      if (!users || users.length === 0) {
+        users = [];
+        if (config.adminUser) {
+          users.push({
+            id: 'auth_master_admin',
+            name: config.adminUser.name || 'Master Administrator',
+            email: config.adminUser.email.toLowerCase().trim(),
+            password: config.adminUser.password,
+            role: 'Admin',
+            status: 'Active',
+            title: 'Master Administrator - Full Access'
+          });
+        }
+        if (config.defaultTeam) {
+          config.defaultTeam.forEach((member, i) => {
+            if (!users.some(u => u.email.toLowerCase() === member.email.toLowerCase().trim())) {
+              users.push({
+                id: `auth_${i + 2}`,
+                name: member.name,
+                email: member.email.toLowerCase().trim(),
+                password: member.password,
+                role: member.role,
+                status: 'Active',
+                title: `${member.role} - Authorized`
+              });
+            }
+          });
+        }
+      }
+
+      // Always guarantee the Master Admin from config is present and updated
+      if (config.adminUser && config.adminUser.email) {
+        const adminEmail = config.adminUser.email.toLowerCase().trim();
+        const adminIdx = users.findIndex(u => u.email.toLowerCase() === adminEmail);
+        const masterAdminObj = {
+          id: 'auth_master_admin',
+          name: config.adminUser.name || 'Master Administrator',
+          email: adminEmail,
+          password: config.adminUser.password,
+          role: 'Admin',
+          status: 'Active',
+          title: 'Master Administrator - Full Access'
+        };
+        if (adminIdx !== -1) {
+          users[adminIdx] = Object.assign({}, users[adminIdx], masterAdminObj);
+        } else {
+          users.unshift(masterAdminObj);
+        }
+      }
+
+      try {
+        localStorage.setItem(AUTH_KEY, JSON.stringify(users));
+      } catch (e) {}
+
+      return users;
+    }
+
+    // Handle Login Submission
+    const form = document.getElementById('login-form');
+    const errorBox = document.getElementById('login-error');
+    const errorMsg = document.getElementById('error-message');
+    const submitBtn = document.getElementById('btn-login-submit');
+
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value.trim().toLowerCase();
+        const password = document.getElementById('login-password').value;
+
+        if (!email || !password) {
+          showError('Please enter both work email and password.');
+          return;
+        }
+
+        let foundUser = null;
+
+        // 1. Direct Master Admin Check (Always 100% Guaranteed Success)
+        if (config.adminUser && config.adminUser.email && config.adminUser.email.toLowerCase().trim() === email) {
+          if (config.adminUser.password === password) {
+            foundUser = {
+              id: 'auth_master_admin',
+              name: config.adminUser.name || 'Master Administrator',
+              email: config.adminUser.email.toLowerCase().trim(),
+              role: 'Admin',
+              status: 'Active'
+            };
+          } else {
+            showError('Invalid password. Please check your credentials or contact an Administrator.');
+            return;
+          }
+        }
+
+        // 2. Direct Default Team Check
+        if (!foundUser && config.defaultTeam) {
+          const teamMatch = config.defaultTeam.find(m => m.email.toLowerCase().trim() === email);
+          if (teamMatch) {
+            if (teamMatch.password === password) {
+              foundUser = {
+                id: `auth_${teamMatch.role.toLowerCase()}`,
+                name: teamMatch.name,
+                email: teamMatch.email.toLowerCase().trim(),
+                role: teamMatch.role,
+                status: 'Active'
+              };
+            } else {
+              showError('Invalid password. Please check your credentials or contact an Administrator.');
+              return;
+            }
+          }
+        }
+
+        // 3. Authorized Personnel Directory Check (Including UI created/edited personnel)
+        if (!foundUser) {
+          const users = getAuthorizedDirectory();
+          foundUser = users.find(u => u.email.toLowerCase().trim() === email);
+
+          if (!foundUser) {
+            showError('Access Denied: This account is not authorized. Please check your credentials or contact an Administrator.');
+            return;
+          }
+
+          const inputHash = await sha256(password);
+          const isMatch = (foundUser.password && foundUser.password === password) ||
+                          (foundUser.pHash && foundUser.pHash === inputHash) ||
+                          (foundUser.password && (await sha256(foundUser.password)) === inputHash);
+
+          if (!isMatch) {
+            showError('Invalid password. Please check your credentials or contact an Administrator.');
+            return;
+          }
+        }
+
+        if (foundUser.status === 'Suspended' || foundUser.status === 'Inactive') {
+          showError('Access Suspended: Your account is inactive. Please contact an Administrator.');
+          return;
+        }
+
+        // Create Active Session
+        const sessionUser = {
+          id: foundUser.id || 'auth_user',
+          name: foundUser.name || 'User',
+          email: foundUser.email,
+          role: foundUser.role || 'Caller',
+          avatar: (foundUser.name || 'U').charAt(0).toUpperCase()
+        };
+
+        try {
+          localStorage.setItem(USER_KEY, JSON.stringify(sessionUser));
+        } catch (err) {}
+
+        if (submitBtn) {
+          submitBtn.innerHTML = '<span>Authorized! Opening Workspace...</span>';
+          submitBtn.style.opacity = '0.85';
+          submitBtn.disabled = true;
+        }
+
+        setTimeout(() => {
+          if (sessionUser.role === 'Caller') {
+            window.location.replace('mobile.html');
+          } else {
+            window.location.replace('index.html');
+          }
+        }, 300);
+      });
+    }
+
+    function showError(msg) {
+      if (errorMsg && errorBox) {
+        errorMsg.textContent = msg;
+        errorBox.style.display = 'flex';
+        setTimeout(() => {
+          errorBox.style.display = 'none';
+        }, 6000);
+      }
+    }
+  </script>
+</body>
+</html>

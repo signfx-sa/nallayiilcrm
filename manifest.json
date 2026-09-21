@@ -1,0 +1,18 @@
+{
+  "name": "Telecalling CRM",
+  "short_name": "Telecalling",
+  "description": "Enterprise Outreach, Lead Distribution, and Smart Dialer",
+  "start_url": "./login.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0717",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

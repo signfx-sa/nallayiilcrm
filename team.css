@@ -1,0 +1,102 @@
+/* ==========================================================================
+   Telecalling CRM - Team Management Styles
+   Matches Image 2 (Team Overview & Empty State) & Image 5 (Add Member Modal)
+   ========================================================================== */
+
+/* Team Page Main Layout */
+.team-view-container {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Team Member Table Specifics */
+.team-table th:first-child,
+.team-table td:first-child {
+  padding-left: 24px;
+}
+
+.team-table th:last-child,
+.team-table td:last-child {
+  padding-right: 24px;
+  text-align: right;
+}
+
+.role-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.role-pill.admin {
+  background: var(--primary-50);
+  color: var(--primary);
+  border: 1px solid var(--border-focus);
+}
+
+.role-pill.caller {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.role-pill.manager {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+/* Actions in table */
+.table-action-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.table-action-btn:hover {
+  background: #f8fafc;
+  color: var(--primary);
+  border-color: var(--border-focus);
+}
+
+.table-action-btn.delete:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
+
+/* Add Team Member Modal Form Elements (Image 5) */
+.password-field-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.password-toggle-btn:hover {
+  color: var(--text-main);
+}
