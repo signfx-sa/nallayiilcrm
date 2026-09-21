@@ -5,7 +5,7 @@ An enterprise-grade, high-velocity Telecalling & Lead Management platform built 
 
 ---
 
-## 🔑 1. Managing & Creating Passwords (പാസ്‌വേഡ് മാറ്റുന്ന വിധം)
+## 🔑 1. Managing & Creating Passwords 
 
 ### Method A: Direct Master Admin Password via `crm-config.js` (Recommended)
 You can set or change your primary Master Administrator login credentials directly in **`crm-config.js`**:
@@ -53,7 +53,7 @@ The server hashes this password with **PBKDF2 and a unique cryptographic salt** 
 
 ---
 
-## 🏢 2. How to Add or Change Companies (മറ്റൊരു കമ്പനി ചേർക്കുന്ന വിധം)
+## 🏢 2. How to Add or Change Companies 
 
 This platform is engineered with a **Multi-Tenant Architecture**, allowing you to launch independent CRM systems for any business (e.g. Healthcare, Real Estate, Fashion, Travel, Consultancy) in under 2 minutes.
 
